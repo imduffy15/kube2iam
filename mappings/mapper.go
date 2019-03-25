@@ -104,7 +104,7 @@ func (r *ServiceAccountMapper) checkServiceAccountForNamespace(serviceAccount st
 
 	ns, err := r.store.NamespaceByName(namespace)
 	if err != nil {
-		log.Debug("Unable to find an indexed namespace of %s", namespace)
+		log.Debugf("Unable to find an indexed namespace of %s", namespace)
 		return false
 	}
 

@@ -77,7 +77,9 @@ func (ipt *myIPTables) detectConcealmentProxyRule(metadataAddress string) (bool,
 	}
 
 	for i, rule := range rules {
-		if strings.Contains(rule, "-A PREROUTING -d "+metadataAddress+"/32 -p tcp -m tcp --dport 80") {
+		if strings.Contains(rule, "-A PREROUTING") &&
+			strings.Contains(rule, "-d "+metadataAddress+"/32") &&
+			strings.Contains(rule, "-m tcp --dport 80") {
 			log.Debugf("Found existing metadata proxy rule %s", rule)
 			return true, i, nil
 		}

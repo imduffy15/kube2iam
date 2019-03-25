@@ -49,10 +49,10 @@ func AddRule(appPort, metadataAddress, hostInterface, hostIP string) error {
 		}
 		log.Debugf("Inserting iptables rule at position %d - %s, %s, %s", proxyRuleLine, "nat", "PREROUTING", rulespec)
 		return ipt.Insert("nat", "PREROUTING", proxyRuleLine, rulespec...)
-	} else {
-		log.Debugf("Appending iptables rule %s, %s, %s", "nat", "PREROUTING", rulespec)
-		return ipt.AppendUnique("nat", "PREROUTING", rulespec...)
 	}
+
+	log.Debugf("Appending iptables rule %s, %s, %s", "nat", "PREROUTING", rulespec)
+	return ipt.AppendUnique("nat", "PREROUTING", rulespec...)
 }
 
 // checkInterfaceExists validates the interface passed exists for the given system.

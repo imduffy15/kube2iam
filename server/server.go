@@ -34,6 +34,8 @@ const (
 	defaultMaxElapsedTime       = 2 * time.Second
 	defaultMaxInterval          = 1 * time.Second
 	defaultMetadataAddress      = "169.254.169.254"
+	defaultMetadataProxyAddress = "127.0.0.1:988"
+	defaultEnableMetadataProxy  = false
 	defaultNamespaceKey         = "accounts.google.com/allowed-service-accounts"
 )
 
@@ -48,6 +50,8 @@ type Server struct {
 	DefaultServiceAccount string
 	DefaultScopes         string
 	MetadataAddress       string
+	MetadataProxyAddress  string
+	EnableMetadataProxy   bool
 	HostInterface         string
 	HostIP                string
 	NodeName              string
@@ -363,10 +367,15 @@ func (s *Server) validateServiceAccountRequest(logger *log.Entry, w http.Respons
 }
 
 func (s *Server) reverseProxyHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
-	proxy := httputil.NewSingleHostReverseProxy(&url.URL{Scheme: "http", Host: s.MetadataAddress})
+	host := s.MetadataAddress
+	if s.EnableMetadataProxy {
+		host = s.MetadataProxyAddress
+	}
+
+	proxy := httputil.NewSingleHostReverseProxy(&url.URL{Scheme: "http", Host: host})
 	proxy.Transport = xForwardedForStripper{}
 	proxy.ServeHTTP(w, r)
-	logger.WithField("metadata.url", s.MetadataAddress).Debug("Proxy GCE metadata request")
+	logger.WithField("metadata.url", host).Debug("Proxy GCE metadata request")
 }
 
 func write(logger *log.Entry, w http.ResponseWriter, s string) {
@@ -438,6 +447,8 @@ func NewServer() *Server {
 		LogLevel:              defaultLogLevel,
 		LogFormat:             defaultLogFormat,
 		MetadataAddress:       defaultMetadataAddress,
+		MetadataProxyAddress:  defaultMetadataProxyAddress,
+		EnableMetadataProxy:   defaultEnableMetadataProxy,
 		NamespaceKey:          defaultNamespaceKey,
 	}
 }

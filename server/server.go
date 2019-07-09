@@ -37,6 +37,8 @@ const (
 	defaultMetadataProxyAddress = "127.0.0.1:988"
 	defaultEnableMetadataProxy  = false
 	defaultNamespaceKey         = "accounts.google.com/allowed-service-accounts"
+	defaultFlavorHeaderName     = "Metadata-Flavor"
+	defaultFlavorHeaderValue    = "Google"
 )
 
 // Server encapsulates all of the parameters necessary for starting up
@@ -221,6 +223,7 @@ func (s *Server) serviceAccountsHandler(logger *log.Entry, w http.ResponseWriter
 		return
 	}
 
+	w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 	write(logger, w, fmt.Sprintf("%s/\n%s/", serviceAccountMapping.ServiceAccount, "default"))
 }
 
@@ -245,6 +248,7 @@ func (s *Server) serviceAccountTokenHandler(logger *log.Entry, w http.ResponseWr
 		return
 	}
 
+	w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(credentials); err != nil {
 		logger.Errorf("Error sending json %+v", err)
@@ -272,11 +276,13 @@ func (s *Server) serviceAccountIdentityHandler(logger *log.Entry, w http.Respons
 		return
 	}
 
+	w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 	write(logger, w, credentials)
 }
 
 func (s *Server) serviceAccountScopesHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
 	if serviceAccountMappingResult, err := s.validateServiceAccountRequest(logger, w, r); err == nil {
+		w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 		for _, scope := range serviceAccountMappingResult.Scopes {
 			write(logger, w, scope)
 		}
@@ -285,12 +291,14 @@ func (s *Server) serviceAccountScopesHandler(logger *log.Entry, w http.ResponseW
 
 func (s *Server) serviceAccountAliasesHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
 	if _, err := s.validateServiceAccountRequest(logger, w, r); err == nil {
+		w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 		write(logger, w, mux.Vars(r)["serviceAccount"])
 	}
 }
 
 func (s *Server) serviceAccountEmailHandler(logger *log.Entry, w http.ResponseWriter, r *http.Request) {
 	if serviceAccountMappingResult, err := s.validateServiceAccountRequest(logger, w, r); err == nil {
+		w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 		write(logger, w, serviceAccountMappingResult.ServiceAccount)
 	}
 }
@@ -305,6 +313,7 @@ func (s *Server) serviceAccountHandler(logger *log.Entry, w http.ResponseWriter,
 				write(logger, w, fmt.Sprintf("%s\n", path))
 			}
 		} else {
+			w.Header().Set(defaultFlavorHeaderName, defaultFlavorHeaderValue)
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(&ServiceAccount{
 				Aliases: []string{mux.Vars(r)["serviceAccount"]},
